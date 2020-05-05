@@ -13,11 +13,11 @@ $(document).ready(function () {
 
   var populateData = function (stateID) {
 
-    result = todaysDeltaJSON;
-    new_positive = 0;
-    old_positive = 0;
-    new_cured = 0;
-    new_deaths = 0;
+    let result = todaysDeltaJSON;
+    let new_positive = 0;
+    let old_positive = 0;
+    let new_cured = 0;
+    let new_deaths = 0;
 
     result.forEach(data => {
       if (data.sno !== "11111" && (stateID == null || stateID === 'ALL' || stateID == data.sno)) {
@@ -29,12 +29,14 @@ $(document).ready(function () {
       }
 
     });
-    delta = new_positive - old_positive;
+    let delta = new_positive - old_positive;
+    let active = new_positive - new_cured - new_deaths;
 
     $("#positive").html(new_positive);
     $("#cured").html(new_cured);
     $("#death").html(new_deaths);
     $("#delta").html(delta);
+    $("#active").html(active)
   }
 
   var populateStates = function () {
