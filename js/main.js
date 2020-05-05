@@ -43,7 +43,11 @@ $(document).ready(function () {
     $("#cured").html(new_cured);
     $("#death").html(new_deaths);
     $("#active").html(active);
+<<<<<<< HEAD
     $("#delta").html(delta);
+=======
+    //$("#delta").html(delta);
+>>>>>>> e5d222474a1922e62e3ebc28aafb50d5a39fe4cc
   }
 
   var populateStates = function () {
