@@ -20,7 +20,7 @@ $(document).ready(function () {
     let new_deaths = 0;
 
     result.forEach(data => {
-      if (data.sno !== "11111" && (stateID == null || stateID === 'ALL' || stateID == data.sno)) {
+      if (data.sno !== "11111" && (stateID == null || stateID === 'ALL' || stateID === data.sno)) {
         new_positive += parseInt(data.new_positive);
         new_cured += parseInt(data.new_cured);
         new_deaths += parseInt(data.new_death);
@@ -35,8 +35,8 @@ $(document).ready(function () {
     $("#positive").html(new_positive);
     $("#cured").html(new_cured);
     $("#death").html(new_deaths);
-    $("#delta").html(delta);
-    $("#active").html(active)
+    $("#active").html(active);
+    //$("#delta").html(delta);
   }
 
   var populateStates = function () {
