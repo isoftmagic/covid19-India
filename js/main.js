@@ -1,6 +1,7 @@
 $(document).ready(function () {
 
-  var todaysDeltaJSON = {}
+  var todaysDeltaJSON = {};
+  var deltaJSON = {};
 
   var todaysDelta = function () {
     return $.ajax({
@@ -15,9 +16,10 @@ $(document).ready(function () {
 
     let result = todaysDeltaJSON;
     let new_positive = 0;
-    let old_positive = 0;
     let new_cured = 0;
     let new_deaths = 0;
+
+    let stateName = 'ALL'
 
     result.forEach(data => {
       if (data.sno !== "11111" && (stateID == null || stateID === 'ALL' || stateID === data.sno)) {
@@ -25,18 +27,23 @@ $(document).ready(function () {
         new_cured += parseInt(data.new_cured);
         new_deaths += parseInt(data.new_death);
 
-        old_positive += parseInt(data.positive);
+        if(stateID === data.sno){
+          stateName = data.state_name;
+        }
       }
-
     });
-    let delta = new_positive - old_positive;
     let active = new_positive - new_cured - new_deaths;
+
+    let deltaData = deltaJSON[stateName];
+    let previousDayData = deltaData[deltaData.length - 1];
+    //Add Active + Cured + Death
+    let delta = new_positive - (previousDayData[1] + previousDayData[2] + previousDayData[3]);
 
     $("#positive").html(new_positive);
     $("#cured").html(new_cured);
     $("#death").html(new_deaths);
     $("#active").html(active);
-    //$("#delta").html(delta);
+    $("#delta").html(delta);
   }
 
   var populateStates = function () {
@@ -50,5 +57,41 @@ $(document).ready(function () {
     });
   }
 
-  todaysDelta().then(populateStates).then(populateData);
+  var getDeltaData = function () {
+    return $.ajax({
+      url: "https://www.mohfw.gov.in/index.php", success: function (result) {
+        console.log(result);
+        let formIndex = result.indexOf('url: "data/new.php",');
+        let toIndex = result.indexOf('title: "Trends:"+" "+ result,');
+
+        let targetString = result.substring(formIndex, toIndex);
+
+        targetString = targetString.substring(targetString.indexOf("'All States'"));
+        targetString = targetString
+          .replace(/\t/gi, '')
+          .replace(/if\(result == /gi, '')
+          .replace(/var data = google.visualization.arrayToDataTable\(\[/gi, '')
+          .replace(/\['Date','Active cases','Cured','Death','Diffrential\(compared to previous day\)'\],/gi, '')
+          .replace(/\['Date','Active cases','Cured','Death'\],/gi,'')
+          .replace(/\){\n/gi,': [')
+          .replace(/\);\n}/gi, ',')
+          .replace(/\],\n\],/gi, ']\n],')
+          .replace(/var options = {/gi, '')
+          .replace(/'/gi, '"')
+          .replace(/All States/gi, 'ALL')
+          .trim()
+
+        targetString = targetString.substr(0, targetString.length-1)
+        targetString = `{${targetString}}`
+        try{
+          deltaJSON = JSON.parse(targetString);
+        } catch (e) {
+          console.log('Error occurred while parsing delta data', e);
+        }
+      }
+    });
+  }
+
+  todaysDelta().then(getDeltaData).then(populateStates).then(populateData);
+
 });
