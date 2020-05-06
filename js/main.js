@@ -35,9 +35,9 @@ $(document).ready(function () {
     let active = new_positive - new_cured - new_deaths;
 
     let deltaData = deltaJSON[stateName];
-    let previousDayData = deltaData[deltaData.length - 1];
+    let previousDayData = deltaData[deltaData.length - 2];
     //Add Active + Cured + Death
-    let delta = new_positive - (previousDayData[1] + previousDayData[2] + previousDayData[3]);
+    let delta = Math.abs(new_positive - (previousDayData[1] + previousDayData[2] + previousDayData[3]));
 
     $("#positive").html(new_positive);
     $("#cured").html(new_cured);
@@ -61,7 +61,6 @@ $(document).ready(function () {
   var getDeltaData = function () {
     return $.ajax({
       url: "https://www.mohfw.gov.in/index.php", success: function (result) {
-        console.log(result);
         let formIndex = result.indexOf('url: "data/new.php",');
         let toIndex = result.indexOf('title: "Trends:"+" "+ result,');
 
