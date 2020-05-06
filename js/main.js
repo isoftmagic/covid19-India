@@ -2,6 +2,7 @@ $(document).ready(function () {
 
   var todaysDeltaJSON = {};
   var deltaJSON = {};
+  var stateFilter = 'ALL';
 
   var todaysDelta = function () {
     return $.ajax({
@@ -21,6 +22,10 @@ $(document).ready(function () {
 
     let stateName = 'ALL'
 
+    if(stateID === undefined || stateID === null || stateID === '' ) {
+      stateID = stateFilter;
+    }
+
     result.forEach(data => {
       if (data.sno !== "11111" && (stateID == null || stateID === 'ALL' || stateID === data.sno)) {
         new_positive += parseInt(data.new_positive);
@@ -28,7 +33,7 @@ $(document).ready(function () {
         new_deaths += parseInt(data.new_death);
 
         if(stateID === data.sno){
-          stateName = data.state_name;
+          stateName = data.state_name.replace("@", "");
         }
       }
     });
@@ -53,9 +58,17 @@ $(document).ready(function () {
         $("#stateFilter").append(`<option value='${data.sno}'>${data.state_name}</option>`);
       }
     });
+    $("#stateFilter").val(stateFilter);
     $("#stateFilter").change((value) => {
+
+      let selectedIndex = $("#stateFilter").val().replace("ALL", 0);
+      let selectedState = $("#stateFilter")[0].options[selectedIndex].text;
+      let url = new URL(window.location);
+      url.searchParams.set("s", selectedState);
+      window.history.pushState({}, "Covid-19 India Dashboard", url.toString())
       populateData($("#stateFilter").val());
     });
+
   }
 
   var getDeltaData = function () {
@@ -92,6 +105,27 @@ $(document).ready(function () {
     });
   }
 
-  todaysDelta().then(getDeltaData).then(populateStates).then(populateData);
+  const getURLParams = function(){
+    const urlParams = new URLSearchParams(window.location.search);
+    let stateParam = urlParams.get("s");
+
+    if(stateParam !== null && stateParam !== ''){
+      stateParam = stateParam.toLowerCase().trim();
+      let result = todaysDeltaJSON;
+      result.forEach(data => {
+        let stateName = data.state_name.toLowerCase().trim().replace('@', '');
+        if(stateName === stateParam || data.state_name.toLowerCase() === stateParam) {
+          stateFilter = data.sno;
+          return stateFilter;
+        }
+      });
+    }
+  }
+
+  todaysDelta()
+    .then(getDeltaData)
+    .then(getURLParams)
+    .then(populateStates)
+    .then(populateData);
 
 });
