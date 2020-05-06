@@ -55,7 +55,7 @@ $(document).ready(function () {
   var populateStates = function () {
     todaysDeltaJSON.forEach(data => {
       if (data.sno !== "11111") {
-        $("#stateFilter").append(`<option value='${data.sno}'>${data.state_name}</option>`);
+        $("#stateFilter").append(`<option value='${data.sno}'>${data.state_name.replace("@", "")}</option>`);
       }
     });
     $("#stateFilter").val(stateFilter);
