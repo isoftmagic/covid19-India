@@ -12,6 +12,7 @@
   <link rel="shortcut icon" href="icon.png" >
   <!-- Place favicon.ico in the root directory -->
   <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/switch-button.css">
   <link rel="stylesheet" href="css/main.css">
 
   <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
@@ -30,11 +31,20 @@
       <div class="jumbotron">
         <h1>Covid-19 India Dashboard</h1>
       </div>
-      <div>
-        <label for="stateFilter" class="col-form-label-sm">States Filter:</label>
-        <select id="stateFilter" class="custom-select-sm">
-          <option value="ALL">All</option>
-        </select>
+      <div class="row">
+        <div class="col-md-6 col-sm-12">
+          <label for="stateFilter" class="col-form-label-sm">States Filter:</label>
+          <select id="stateFilter" class="custom-select-sm">
+            <option value="ALL">All</option>
+          </select>
+        </div>
+        <div class="col-md-6 col-sm-12 refresh-switch" >
+          <label for="refresh-checkbox" class="col-form-label-sm">Auto-Refresh:&nbsp;</label>
+          <label class="switch">
+            <input id="refresh-checkbox" type="checkbox">
+            <span class="slider round"></span>
+          </label>
+        </div>
       </div>
       <div class="card-columns text-center">
         <div class="card mt-4 mb-4">
@@ -100,6 +110,7 @@
   <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
   <script>window.jQuery || document.write('<script src="js/vendor/jquery-3.4.1.min.js"><\/script>')</script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js" integrity="sha384-6khuMg9gaYr5AxOqhkVIODVIvm9ynTT5J4V1cfthmT+emCG6yVmEZsRHdxlotUnm" crossorigin="anonymous"></script>
+  <script src="js/vendor/jquery.cookie-1.4.1.js"></script>
   <script src="js/plugins.js"></script>
   <script src="js/main.js"></script>
 

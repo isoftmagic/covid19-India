@@ -3,6 +3,9 @@ $(document).ready(function () {
   var todaysDeltaJSON = {};
   var deltaJSON = {};
   var stateFilter = 'ALL';
+  const REFRESH_TIME = 5 * 60 * 1000; //5 minute
+  var autoRefresh = true;
+  var timeIntervalFunction;
 
   var todaysDelta = function () {
     return $.ajax({
@@ -22,7 +25,7 @@ $(document).ready(function () {
 
     let stateName = 'ALL'
 
-    if(stateID === undefined || stateID === null || stateID === '' ) {
+    if(typeof stateID === 'undefined' || stateID === null || stateID === '' ) {
       stateID = stateFilter;
     }
 
@@ -151,10 +154,56 @@ $(document).ready(function () {
     }
   }
 
+  var setAutoRefreshChekboxFromCookie = function() {
+    autoRefresh = $.cookie('autoRefresh');
+
+    if( typeof autoRefresh == 'undefined' || autoRefresh === 'true') {
+      autoRefresh = true;
+    } else {
+      autoRefresh = false;
+    }
+    $("#refresh-checkbox").prop('checked', autoRefresh);
+  }
+
+  var setAutoRefreshListener = function () {
+    setAutoRefreshChekboxFromCookie();
+    $("#refresh-checkbox").change(function () {
+
+      autoRefresh = $("#refresh-checkbox").prop('checked');
+      $.cookie("autoRefresh", autoRefresh);
+
+      if(autoRefresh){
+        refreshDataAndReload();
+      } else {
+        clearTimeout(timeIntervalFunction);
+      }
+    });
+  }
+
+  var setRefreshTimer = function () {
+    if(autoRefresh) {
+      timeIntervalFunction = setTimeout(function(){
+        refreshDataAndReload()
+      }, REFRESH_TIME);
+    }
+  }
+
+  var refreshDataAndReload = function(){
+    if(autoRefresh) {
+      todaysDelta()
+        .then(getDeltaData)
+        .then(() => {
+          populateData($("#stateFilter").val());
+        })
+        .then(setRefreshTimer);
+    }
+  }
+
   todaysDelta()
     .then(getDeltaData)
     .then(getURLParams)
     .then(populateStates)
-    .then(populateData);
-
+    .then(populateData)
+    .then(setAutoRefreshListener)
+    .then(setRefreshTimer);
 });

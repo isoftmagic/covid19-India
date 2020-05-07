@@ -279,3 +279,7 @@ p.down-delta {
   color: green;
   font-size: larger;
 }
+div.refresh-switch {
+  display: flex;
+  justify-content: flex-end;
+}
