@@ -39,7 +39,7 @@ $(document).ready(function () {
     });
     let active = new_positive - new_cured - new_deaths;
 
-    let deltaData = deltaJSON[stateName];
+    let deltaData = deltaJSON[stateName.toLowerCase()];
     let previousDayData = deltaData[deltaData.length - 2];
     //Add Active + Cured + Death
     let delta = Math.abs(new_positive - (previousDayData[1] + previousDayData[2] + previousDayData[3]));
@@ -48,8 +48,37 @@ $(document).ready(function () {
     $("#cured").html(new_cured);
     $("#death").html(new_deaths);
     $("#active").html(active);
-    $("#delta").html(delta);
 
+    let curedDelta = new_cured - previousDayData[2];
+    let deathDelta = new_deaths - previousDayData[3];
+    let activeDelta = active - previousDayData[1];
+
+    $("#positive-delta").html(delta);
+    $("#cured-delta").html(curedDelta);
+    $("#death-delta").html(deathDelta);
+    $("#active-delta").html(activeDelta);
+
+    setDeltaColor(delta, curedDelta, deathDelta, activeDelta);
+  };
+
+  var setDeltaColor = function(positive, cured, deaths, active){
+    setColorClass("positive", positive, false);
+    setColorClass("cured", cured, true);
+    setColorClass("death", deaths, false);
+    setColorClass("active", active, false);
+  }
+
+  var setColorClass = function (cellId, value, isGreenIfPositive) {
+    if(value <= 0 || (value > 0 && isGreenIfPositive)){
+      $(`#p-${cellId}-delta`).removeClass('up-delta').addClass('down-delta');
+    } else {
+      $(`#p-${cellId}-delta`).removeClass('down-delta').addClass('up-delta');
+    }
+    if(value > 0){
+      $(`#${cellId}-delta-arrow`).html('&uarr;')
+    } else {
+      $(`#${cellId}-delta-arrow`).html('&darr;')
+    }
   }
 
   var populateStates = function () {
@@ -68,7 +97,6 @@ $(document).ready(function () {
       window.history.pushState({}, "Covid-19 India Dashboard", url.toString())
       populateData($("#stateFilter").val());
     });
-
   }
 
   var getDeltaData = function () {
@@ -92,6 +120,7 @@ $(document).ready(function () {
           .replace(/var options = {/gi, '')
           .replace(/'/gi, '"')
           .replace(/All States/gi, 'ALL')
+          .toLowerCase()
           .trim()
 
         targetString = targetString.substr(0, targetString.length-1)

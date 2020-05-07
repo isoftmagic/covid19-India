@@ -266,7 +266,16 @@ textarea {
 /* =================================================
  Custom Style
  ===================================================*/
-p.data{
+p.data {
   font-size: xx-large;
+}
 
+p.up-delta {
+  color: darkred;
+  font-size: larger;
+}
+
+p.down-delta {
+  color: green;
+  font-size: larger;
 }
