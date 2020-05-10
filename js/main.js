@@ -61,6 +61,8 @@ $(document).ready(function () {
     $("#death-delta").html(deathDelta);
     $("#active-delta").html(activeDelta);
 
+    $("#last-update-time").html(moment().format("MMM DD, YYYY h:mm A"));
+
     setDeltaColor(delta, curedDelta, deathDelta, activeDelta);
   };
 

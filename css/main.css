@@ -279,7 +279,18 @@ p.down-delta {
   color: green;
   font-size: larger;
 }
+
 div.refresh-switch {
   display: flex;
   justify-content: flex-end;
+}
+
+div.update-time-row {
+  margin-top: -30px;
+}
+
+span.last-updated-time {
+  float: right;
+  font-size: small;
+  color: #888888;
 }
