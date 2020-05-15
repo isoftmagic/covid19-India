@@ -1,30 +1,27 @@
 $(document).ready(function () {
 
-  let todaysDataJSON = {};
-  //var deltaJSON = {};
-  let stateFilter = 'ALL';
+  var todaysDeltaJSON = {};
+  var deltaJSON = {};
+  var stateFilter = 'ALL';
   const REFRESH_TIME = 5 * 60 * 1000; //5 minute
-  let autoRefresh = true;
-  let timeIntervalFunction;
+  var autoRefresh = true;
+  var timeIntervalFunction;
 
-  const getTodaysData = function () {
+  var todaysDelta = function () {
     return $.ajax({
       url: "https://www.mohfw.gov.in/data/datanew.json", success: function (result) {
-        todaysDataJSON = result;
+        todaysDeltaJSON = result;
       }
 
     });
   }
 
-  const populateData = function (stateID) {
+  var populateData = function (stateID) {
 
-    let result = todaysDataJSON;
-    let positiveCasesToday = 0;
-    let curedCasesToday = 0;
-    let deathCasesToday = 0;
-    let positiveCasesYesterday = 0;
-    let curedCasesYesterday = 0;
-    let deathCasesYesterday = 0;
+    let result = todaysDeltaJSON;
+    let new_positive = 0;
+    let new_cured = 0;
+    let new_deaths = 0;
 
     let stateName = 'ALL'
 
@@ -34,51 +31,49 @@ $(document).ready(function () {
 
     result.forEach(data => {
       if (data.sno !== "11111" && (stateID == null || stateID === 'ALL' || stateID === data.sno)) {
-        positiveCasesToday += parseInt(data.new_positive);
-        curedCasesToday += parseInt(data.new_cured);
-        deathCasesToday += parseInt(data.new_death);
-
-        positiveCasesYesterday += parseInt(data.positive);
-        curedCasesYesterday += parseInt(data.cured);
-        deathCasesYesterday += parseInt(data.death);
+        new_positive += parseInt(data.new_positive);
+        new_cured += parseInt(data.new_cured);
+        new_deaths += parseInt(data.new_death);
 
         if(stateID === data.sno){
           stateName = data.state_name.replace("@", "");
         }
       }
     });
-    let activeCaseToday = positiveCasesToday - curedCasesToday - deathCasesToday;
-    let activeCasesYesterday = positiveCasesYesterday - curedCasesYesterday - deathCasesYesterday;
+    let active = new_positive - new_cured - new_deaths;
 
+    let deltaData = deltaJSON[stateName.toLowerCase()];
+    let previousDayData = deltaData[deltaData.length - 2];
+    //Add Active + Cured + Death
+    let delta = Math.abs(new_positive - (previousDayData[1] + previousDayData[2] + previousDayData[3]));
 
-    $("#positive").html(positiveCasesToday);
-    $("#cured").html(curedCasesToday);
-    $("#death").html(deathCasesToday);
-    $("#active").html(activeCaseToday);
+    $("#positive").html(new_positive);
+    $("#cured").html(new_cured);
+    $("#death").html(new_deaths);
+    $("#active").html(active);
 
-    let positiveDelta = positiveCasesToday - positiveCasesYesterday;
-    let curedDelta = curedCasesToday - curedCasesYesterday;
-    let deathDelta = deathCasesToday - deathCasesYesterday;
-    let activeDelta = activeCaseToday - activeCasesYesterday;
+    let curedDelta = new_cured - previousDayData[2];
+    let deathDelta = new_deaths - previousDayData[3];
+    let activeDelta = active - previousDayData[1];
 
-    $("#positive-delta").html(positiveDelta);
+    $("#positive-delta").html(delta);
     $("#cured-delta").html(curedDelta);
     $("#death-delta").html(deathDelta);
     $("#active-delta").html(activeDelta);
 
     $("#last-update-time").html(moment().format("MMM DD, YYYY h:mm A"));
 
-    setDeltaColor(positiveDelta, curedDelta, deathDelta, activeDelta);
+    setDeltaColor(delta, curedDelta, deathDelta, activeDelta);
   };
 
-  const setDeltaColor = function(positive, cured, deaths, active){
+  var setDeltaColor = function(positive, cured, deaths, active){
     setColorClass("positive", positive, false);
     setColorClass("cured", cured, true);
     setColorClass("death", deaths, false);
     setColorClass("active", active, false);
   }
 
-  const setColorClass = function (cellId, value, isGreenIfPositive) {
+  var setColorClass = function (cellId, value, isGreenIfPositive) {
     if(value <= 0 || (value > 0 && isGreenIfPositive)){
       $(`#p-${cellId}-delta`).removeClass('up-delta').addClass('down-delta');
     } else {
@@ -91,8 +86,8 @@ $(document).ready(function () {
     }
   }
 
-  const populateStates = function () {
-    todaysDataJSON.forEach(data => {
+  var populateStates = function () {
+    todaysDeltaJSON.forEach(data => {
       if (data.sno !== "11111") {
         $("#stateFilter").append(`<option value='${data.sno}'>${data.state_name.replace("@", "")}</option>`);
       }
@@ -109,6 +104,40 @@ $(document).ready(function () {
     });
   }
 
+  var getDeltaData = function () {
+    return $.ajax({
+      url: "https://www.mohfw.gov.in/index.php", success: function (result) {
+        let formIndex = result.indexOf('url: "data/new.php",');
+        let toIndex = result.indexOf('title: "Trends:"+" "+ result,');
+
+        let targetString = result.substring(formIndex, toIndex);
+
+        targetString = targetString.substring(targetString.indexOf("'All States'"));
+        targetString = targetString
+          .replace(/\t/gi, '')
+          .replace(/if\(result == /gi, '')
+          .replace(/var data = google.visualization.arrayToDataTable\(\[/gi, '')
+          .replace(/\['Date','Active cases','Cured','Death','Diffrential\(compared to previous day\)'\],/gi, '')
+          .replace(/\['Date','Active cases','Cured','Death'\],/gi,'')
+          .replace(/\){\n/gi,': [')
+          .replace(/\);\n}/gi, ',')
+          .replace(/\],\n\],/gi, ']\n],')
+          .replace(/var options = {/gi, '')
+          .replace(/'/gi, '"')
+          .replace(/All States/gi, 'ALL')
+          .toLowerCase()
+          .trim()
+
+        targetString = targetString.substr(0, targetString.length-1)
+        targetString = `{${targetString}}`
+        try{
+          deltaJSON = JSON.parse(targetString);
+        } catch (e) {
+          console.log('Error occurred while parsing delta data', e);
+        }
+      }
+    });
+  }
 
   const getURLParams = function(){
     const urlParams = new URLSearchParams(window.location.search);
@@ -116,7 +145,7 @@ $(document).ready(function () {
 
     if(stateParam !== null && stateParam !== ''){
       stateParam = stateParam.toLowerCase().trim();
-      let result = todaysDataJSON;
+      let result = todaysDeltaJSON;
       result.forEach(data => {
         let stateName = data.state_name.toLowerCase().trim().replace('@', '');
         if(stateName === stateParam || data.state_name.toLowerCase() === stateParam) {
@@ -127,7 +156,7 @@ $(document).ready(function () {
     }
   }
 
-  const setAutoRefreshChekboxFromCookie = function() {
+  var setAutoRefreshChekboxFromCookie = function() {
     autoRefresh = $.cookie('autoRefresh');
 
     if( typeof autoRefresh == 'undefined' || autoRefresh === 'true') {
@@ -138,7 +167,7 @@ $(document).ready(function () {
     $("#refresh-checkbox").prop('checked', autoRefresh);
   }
 
-  const setAutoRefreshListener = function () {
+  var setAutoRefreshListener = function () {
     setAutoRefreshChekboxFromCookie();
     $("#refresh-checkbox").change(function () {
 
@@ -153,7 +182,7 @@ $(document).ready(function () {
     });
   }
 
-  const setRefreshTimer = function () {
+  var setRefreshTimer = function () {
     if(autoRefresh) {
       timeIntervalFunction = setTimeout(function(){
         refreshDataAndReload()
@@ -161,9 +190,10 @@ $(document).ready(function () {
     }
   }
 
-  const refreshDataAndReload = function(){
+  var refreshDataAndReload = function(){
     if(autoRefresh) {
-      getTodaysData()
+      todaysDelta()
+        .then(getDeltaData)
         .then(() => {
           populateData($("#stateFilter").val());
         })
@@ -171,7 +201,8 @@ $(document).ready(function () {
     }
   }
 
-  getTodaysData()
+  todaysDelta()
+    .then(getDeltaData)
     .then(getURLParams)
     .then(populateStates)
     .then(populateData)
