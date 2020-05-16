@@ -1,7 +1,6 @@
 $(document).ready(function () {
 
   let todaysDataJSON = {};
-  //var deltaJSON = {};
   let stateFilter = 'ALL';
   const REFRESH_TIME = 5 * 60 * 1000; //5 minute
   let autoRefresh = true;
@@ -9,7 +8,7 @@ $(document).ready(function () {
 
   const getTodaysData = function () {
     return $.ajax({
-      url: "https://www.mohfw.gov.in/data/datanew.json", success: function (result) {
+      url: "https://www.mohfw.gov.in/data/data.json", success: function (result) {
         todaysDataJSON = result;
       }
 
@@ -34,13 +33,10 @@ $(document).ready(function () {
 
     result.forEach(data => {
       if (data.sno !== "11111" && (stateID == null || stateID === 'ALL' || stateID === data.sno)) {
-        positiveCasesToday += parseInt(data.new_positive);
-        curedCasesToday += parseInt(data.new_cured);
-        deathCasesToday += parseInt(data.new_death);
 
-        positiveCasesYesterday += parseInt(data.positive);
-        curedCasesYesterday += parseInt(data.cured);
-        deathCasesYesterday += parseInt(data.death);
+        positiveCasesToday += parseInt(data.positive);
+        curedCasesToday += parseInt(data.cured);
+        deathCasesToday += parseInt(data.death);
 
         if(stateID === data.sno){
           stateName = data.state_name.replace("@", "");
@@ -48,7 +44,7 @@ $(document).ready(function () {
       }
     });
     let activeCaseToday = positiveCasesToday - curedCasesToday - deathCasesToday;
-    let activeCasesYesterday = positiveCasesYesterday - curedCasesYesterday - deathCasesYesterday;
+
 
 
     $("#positive").html(positiveCasesToday);
@@ -56,19 +52,20 @@ $(document).ready(function () {
     $("#death").html(deathCasesToday);
     $("#active").html(activeCaseToday);
 
-    let positiveDelta = positiveCasesToday - positiveCasesYesterday;
-    let curedDelta = curedCasesToday - curedCasesYesterday;
-    let deathDelta = deathCasesToday - deathCasesYesterday;
-    let activeDelta = activeCaseToday - activeCasesYesterday;
-
-    $("#positive-delta").html(positiveDelta);
-    $("#cured-delta").html(curedDelta);
-    $("#death-delta").html(deathDelta);
-    $("#active-delta").html(activeDelta);
+    // let activeCasesYesterday = positiveCasesYesterday - curedCasesYesterday - deathCasesYesterday;
+    // let positiveDelta = positiveCasesToday - positiveCasesYesterday;
+    // let curedDelta = curedCasesToday - curedCasesYesterday;
+    // let deathDelta = deathCasesToday - deathCasesYesterday;
+    // let activeDelta = activeCaseToday - activeCasesYesterday;
+    //
+    // $("#positive-delta").html(positiveDelta);
+    // $("#cured-delta").html(curedDelta);
+    // $("#death-delta").html(deathDelta);
+    // $("#active-delta").html(activeDelta);
 
     $("#last-update-time").html(moment().format("MMM DD, YYYY h:mm A"));
 
-    setDeltaColor(positiveDelta, curedDelta, deathDelta, activeDelta);
+    //setDeltaColor(positiveDelta, curedDelta, deathDelta, activeDelta);
   };
 
   const setDeltaColor = function(positive, cured, deaths, active){
@@ -97,6 +94,7 @@ $(document).ready(function () {
         $("#stateFilter").append(`<option value='${data.sno}'>${data.state_name.replace("@", "")}</option>`);
       }
     });
+
     $("#stateFilter").val(stateFilter);
     $("#stateFilter").change((value) => {
 
@@ -116,8 +114,7 @@ $(document).ready(function () {
 
     if(stateParam !== null && stateParam !== ''){
       stateParam = stateParam.toLowerCase().trim();
-      let result = todaysDataJSON;
-      result.forEach(data => {
+      todaysDataJSON.forEach(data => {
         let stateName = data.state_name.toLowerCase().trim().replace('@', '');
         if(stateName === stateParam || data.state_name.toLowerCase() === stateParam) {
           stateFilter = data.sno;
@@ -130,11 +127,7 @@ $(document).ready(function () {
   const setAutoRefreshChekboxFromCookie = function() {
     autoRefresh = $.cookie('autoRefresh');
 
-    if( typeof autoRefresh == 'undefined' || autoRefresh === 'true') {
-      autoRefresh = true;
-    } else {
-      autoRefresh = false;
-    }
+    autoRefresh = typeof autoRefresh == 'undefined' || autoRefresh === 'true';
     $("#refresh-checkbox").prop('checked', autoRefresh);
   }
 

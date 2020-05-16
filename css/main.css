@@ -294,3 +294,9 @@ span.last-updated-time {
   font-size: small;
   color: #888888;
 }
+
+div.notification {
+  margin: 10px;
+  color: #999999;
+  font-size: small;
+}
